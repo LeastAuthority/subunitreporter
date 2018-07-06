@@ -20,7 +20,7 @@ setuptools.setup(
     url="https://github.com/LeastAuthority/subunitreporter",
     license="MIT",
     package_dir={"": "src"},
-    packages=setuptools.find_packages(where="src"),
+    packages=setuptools.find_packages(where="src") + ["twisted.plugins"],
     include_package_data=True,
     zip_safe=False,
     install_requires=[
