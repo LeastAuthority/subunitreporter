@@ -8,5 +8,5 @@ from __future__ import (
     unicode_literals,
 )
 
-version_tuple = (18, 7, 1)
+version_tuple = (18, 7, 2)
 version_string = ".".join(map(str, version_tuple))
