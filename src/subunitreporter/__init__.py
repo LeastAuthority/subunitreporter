@@ -10,6 +10,7 @@ from __future__ import (
 
 from sys import stdout
 import attr
+from base64 import b64encode
 
 from zope.interface import implementer
 
@@ -151,4 +152,33 @@ def reporter(stream, tbformat=None, realtime=None, publisher=None):
     :param stream: A ``write``-able object to which the result stream will be
         written.
     """
-    return _SubunitReporter(stream)
+    return _SubunitReporter(stream=stream)
+
+
+def reporter_b64(stream, tbformat=None, realtime=None, publisher=None):
+    """
+    Create a trial reporter which emits a base64 encoded stream of a subunit
+    v2 stream of test result information to the given stream.
+
+    This is useful when the output must be transported by a non-8-bit-clean
+    protocol or transport (I'm looking at you, JSON).
+
+    :param stream: A ``write``-able object to which the result stream will be
+        written.
+    """
+    return _SubunitReporter(stream=_Base64Bytes(stream))
+
+
+@attr.s
+class _Base64Bytes(object):
+    stream = attr.ib()
+
+    def write(self, data):
+        self.stream.write(b64encode(data).decode("ascii"))
+        return len(data)
+
+    def read(self, count=None):
+        return b""
+
+    def flush(self):
+        return self.stream.flush()

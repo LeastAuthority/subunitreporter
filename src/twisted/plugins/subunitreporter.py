@@ -32,3 +32,12 @@ subunitv2 = _Reporter(
     shortOpt=None,
     klass="reporter",
 )
+
+subunitv2_b64 = _Reporter(
+    "Subunit v2 (Base64 encoded) Reporter",
+    "subunitreporter",
+    description="base64-encoded subunit v2 stream output",
+    longOpt="subunitv2-b64",
+    shortOpt=None,
+    klass="reporter_b64",
+)
