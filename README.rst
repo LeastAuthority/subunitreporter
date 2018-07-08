@@ -11,6 +11,8 @@ What is this?
 subunitreporter is a plugin for Twisted Trial which adds two new reporters.
 The ``subunitv2`` reporter emits subunit v2 result streams with timing information.
 The ``subunitv2-b64`` reporter emits the same information, base64-encoded.
+The ``subunitv2-file`` reporter emits the same information,
+written directly to a file instead of the normal trial output stream.
 
 Usage Sample
 ------------
@@ -20,6 +22,7 @@ For example::
 
   $ trial --reporter=subunitv2 ... | subunit-stats
   $ trial --reporter=subunitv2-b64 ... | base64 -d | subunit-stats
+  $ SUBUNITREPORTER_OUTPUT_PATH=results.subunit2 trial --reporter=subunitv2-file ...
 
 Installing
 ----------
