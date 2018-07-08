@@ -41,3 +41,12 @@ subunitv2_b64 = _Reporter(
     shortOpt=None,
     klass="reporter_b64",
 )
+
+subunitv2_file = _Reporter(
+    "Subunit v2 Reporter",
+    "subunitreporter",
+    description="subunit v2 output to $SUBUNITREPORTER_OUTPUT_PATH",
+    longOpt="subunitv2-file",
+    shortOpt=None,
+    klass="reporter_file",
+)

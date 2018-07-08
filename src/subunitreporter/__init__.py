@@ -8,6 +8,7 @@ from __future__ import (
     unicode_literals,
 )
 
+from os import environ
 from sys import stdout
 import attr
 from base64 import b64encode
@@ -167,6 +168,23 @@ def reporter_b64(stream, tbformat=None, realtime=None, publisher=None):
         written.
     """
     return _SubunitReporter(stream=_Base64Bytes(stream))
+
+
+def reporter_file(stream, tbformat=None, realtime=None, publisher=None):
+    """
+    Create a trial reporter which emits a subunit v2 stream of test result
+    information to a file identified by the ``SUBUNITREPORTER_OUTPUT_PATH``
+    environment variable.
+
+    This is useful when mixing the binary subunitv2 output into trial's output
+    would be inconvenient (for example, when trial is run by tox and there is
+    a desire to actually use the test result information).
+
+    :param stream: **ignored** in favor of the file identified in the
+        environment.
+    """
+    stream = open(environ["SUBUNITREPORTER_OUTPUT_PATH"], "wb")
+    return _SubunitReporter(stream=stream)
 
 
 @attr.s
