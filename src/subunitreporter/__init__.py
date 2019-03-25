@@ -8,7 +8,7 @@ from __future__ import (
     unicode_literals,
 )
 
-from os import environ
+from os import environ, devnull
 from sys import stdout
 import attr
 from base64 import b64encode
@@ -36,8 +36,25 @@ def _make_subunit(reporter):
 class _SubunitReporter(object):
     """
     Reports test output using the subunit v2 protocol.
+
+    :ivar stream: A binary-mode file-like object to which the subunit v2
+        result stream will be written.
+
+    :ivar progress_stream: A text-mode file-like object to which periodic
+        progress updates will be written.
     """
+    _SUCCESS_MARK = u"\N{CHECK MARK}"
+    _FAIL_MARK = u"\N{MULTIPLICATION X}"
+    _ERROR_MARK = u"\N{EXCLAMATION MARK}"
+    _SKIP_MARK = u"\N{PICK}"
+    _XFAIL_MARK = u"\N{PICK}"
+    _XSUCCESS_MARK = u"\N{PICK}"
+
     stream = attr.ib(default=stdout)
+    progress_stream = attr.ib(
+        default=open(devnull, "wt"),
+        converter=lambda v: open(devnull, "wt") if v is None else v,
+    )
 
     _subunit = attr.ib(
         default=attr.Factory(
@@ -95,6 +112,7 @@ class _SubunitReporter(object):
         """
         Record that ``test`` was successful.
         """
+        self.progress_stream.write(self._SUCCESS_MARK)
         return self._subunit.addSuccess(test)
 
     def addSkip(self, test, reason):
@@ -106,12 +124,14 @@ class _SubunitReporter(object):
         :param reason: The reason for it being skipped. The result of ``str``
             on this object will be included in the subunit output stream.
         """
+        self.progress_stream.write(self._SKIP_MARK)
         self._subunit.addSkip(test, reason)
 
     def addError(self, test, err):
         """
         Record that ``test`` failed with an unexpected error ``err``.
         """
+        self.progress_stream.write(self._ERROR_MARK)
         return self._subunit.addError(
             test,
             excInfoOrFailureToExcInfo(err),
@@ -121,6 +141,7 @@ class _SubunitReporter(object):
         """
         Record that ``test`` failed an assertion with the error ``err``.
         """
+        self.progress_stream.write(self._FAIL_MARK)
         return self._subunit.addFailure(
             test,
             excInfoOrFailureToExcInfo(err),
@@ -130,6 +151,7 @@ class _SubunitReporter(object):
         """
         Record an expected failure from a test.
         """
+        self.progress_stream.write(self._XFAIL_MARK)
         self._subunit.addExpectedFailure(
             test,
             excInfoOrFailureToExcInfo(failure),
@@ -142,6 +164,7 @@ class _SubunitReporter(object):
         Since subunit has no way of expressing this concept, we record a
         success on the subunit stream.
         """
+        self.progress_stream.write(self._XSUCCESS_MARK)
         self.addSuccess(test)
 
 
@@ -182,9 +205,21 @@ def reporter_file(stream, tbformat=None, realtime=None, publisher=None):
 
     :param stream: **ignored** in favor of the file identified in the
         environment.
+
+    :param bool realtime: If ``True`` then progress will be reported to
+        ``stream`` as the test run progresses.
+
+    :note: The value of ``realtime`` is supplied by trial based on whether
+        ``--rterrors`` is given on the command line.  We're abusing the flag
+        to mean something somewhat different than the intent, here, but it's
+        an easy way to a boolean argument in as configuration.
     """
+    if realtime:
+        progress_stream = stream
+    else:
+        progress_stream = None
     stream = open(environ["SUBUNITREPORTER_OUTPUT_PATH"], "wb")
-    return _SubunitReporter(stream=stream)
+    return _SubunitReporter(stream=stream, progress_stream=progress_stream)
 
 
 @attr.s
