@@ -11,7 +11,6 @@ from __future__ import (
 from os import environ, devnull
 from sys import stdout
 from base64 import b64encode
-import codecs
 
 import attr
 
@@ -34,7 +33,12 @@ def _make_subunit(reporter):
     )
 
 def _default_progress_stream():
-    return codecs.open(devnull, "wt", "utf-8")
+    return open(devnull, "wb")
+
+def _progress_stream(v):
+    if v is None:
+        return _default_progress_stream()
+    return v
 
 @attr.s
 @implementer(IReporter)
@@ -48,17 +52,17 @@ class _SubunitReporter(object):
     :ivar progress_stream: A text-mode file-like object to which periodic
         progress updates will be written.
     """
-    _SUCCESS_MARK = u"\N{CHECK MARK}"
-    _FAIL_MARK = u"\N{MULTIPLICATION X}"
-    _ERROR_MARK = u"\N{EXCLAMATION MARK}"
-    _SKIP_MARK = u"\N{PICK}"
-    _XFAIL_MARK = u"\N{PICK}"
-    _XSUCCESS_MARK = u"\N{PICK}"
+    _SUCCESS_MARK = u"\N{CHECK MARK}".encode("utf-8")
+    _FAIL_MARK = u"\N{MULTIPLICATION X}".encode("utf-8")
+    _ERROR_MARK = u"\N{EXCLAMATION MARK}".encode("utf-8")
+    _SKIP_MARK = u"\N{PICK}".encode("utf-8")
+    _XFAIL_MARK = u"\N{PICK}".encode("utf-8")
+    _XSUCCESS_MARK = u"\N{PICK}".encode("utf-8")
 
     stream = attr.ib(default=stdout)
     progress_stream = attr.ib(
         default=_default_progress_stream(),
-        converter=lambda v: _default_progress_stream() if v is None else v,
+        converter=_progress_stream,
     )
 
     _subunit = attr.ib(
