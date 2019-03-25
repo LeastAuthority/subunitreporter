@@ -10,8 +10,10 @@ from __future__ import (
 
 from os import environ, devnull
 from sys import stdout
-import attr
 from base64 import b64encode
+import codecs
+
+import attr
 
 from zope.interface import implementer
 
@@ -30,6 +32,9 @@ def _make_subunit(reporter):
             ),
         ),
     )
+
+def _default_progress_stream():
+    return codecs.open(devnull, "wt", "utf-8")
 
 @attr.s
 @implementer(IReporter)
@@ -52,8 +57,8 @@ class _SubunitReporter(object):
 
     stream = attr.ib(default=stdout)
     progress_stream = attr.ib(
-        default=open(devnull, "wt"),
-        converter=lambda v: open(devnull, "wt") if v is None else v,
+        default=_default_progress_stream(),
+        converter=lambda v: _default_progress_stream() if v is None else v,
     )
 
     _subunit = attr.ib(
